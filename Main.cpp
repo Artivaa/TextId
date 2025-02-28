@@ -1,68 +1,175 @@
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <cctype>
-#include <algorithm>
+ï»¿#include <iostream>
+#include <Windows.h>
 
 using namespace std;
 
+const int MAX_LEN = 1024;
+
 int main()
 {
-    setlocale(LC_ALL, "Russian");
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
 
-    string s;
-    cout << "Ââåäèòå ñòðîêó: ";
-    getline(cin, s);
+    char input[MAX_LEN] = { 0 };
+    cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ ÑÑ‚Ñ€Ð¾ÐºÑƒ: ";
+    cin.getline(input, MAX_LEN);
 
-    stringstream ss(s);
-    string word;
-    string result;
+    char result[MAX_LEN] = { 0 };
+    char word[MAX_LEN] = { 0 };
+    char ident[MAX_LEN] = { 0 };
+    int res_pos = 0;
+    int word_pos = 0;
+    bool in_word = false;
 
-    while (ss >> word)
+    for (int i = 0; input[i]; ++i)
     {
-        bool isDigitWord = all_of(word.begin(), word.end(), ::isdigit);
-
-        if (!isDigitWord)
+        if (input[i] != ' ' && input[i] != '\t' && input[i] != '\n')
         {
-            string identifier;
-            bool lastCharWasUnderscore = false;
-
-            if (!isalpha(word[0]) && word[0] != '_')
+            if (!in_word)
             {
-                identifier += '_';
-                lastCharWasUnderscore = true;
+                word_pos = 0;
+                in_word = true;
             }
-
-            for (char c : word)
+            if (word_pos < MAX_LEN - 1) word[word_pos++] = input[i];
+        }
+        else
+        {
+            if (in_word)
             {
-                if (isalnum(c) || c == '_')
+                word[word_pos] = '\0';
+                bool number_word = true;
+                bool check_complete = false;
+
+                for (int j = 0; word[j] && !check_complete; ++j)
                 {
-                    identifier += c;
-                    lastCharWasUnderscore = false;
-                }
-                else
-                {
-                    if (!lastCharWasUnderscore)
+                    if (word[j] < '0' || word[j] > '9')
                     {
-                        identifier += '_';
-                        lastCharWasUnderscore = true;
+                        number_word = false;
+                        check_complete = true;
                     }
                 }
+
+                if (!number_word)
+                {
+                    int ident_pos = 0;
+                    bool last_underscore = false;
+
+                    if ((word[0] < 'A' || (word[0] > 'Z' && word[0] < 'a') || word[0] > 'z') && word[0] != '_')
+                    {
+                        if (ident_pos < MAX_LEN - 1) ident[ident_pos++] = '_';
+                        last_underscore = true;
+                    }
+
+                    for (int j = 0; word[j]; ++j)
+                    {
+                        bool valid = (word[j] >= 'A' && word[j] <= 'Z') ||
+                            (word[j] >= 'a' && word[j] <= 'z') ||
+                            (word[j] >= '0' && word[j] <= '9') ||
+                            word[j] == '_';
+
+                        if (valid)
+                        {
+                            if (ident_pos < MAX_LEN - 1)
+                            {
+                                ident[ident_pos++] = word[j];
+                                last_underscore = (word[j] == '_');
+                            }
+                        }
+                        else if (!last_underscore)
+                        {
+                            if (ident_pos < MAX_LEN - 1)
+                            {
+                                ident[ident_pos++] = '_';
+                                last_underscore = true;
+                            }
+                        }
+                    }
+                    ident[ident_pos] = '\0';
+
+                    for (int j = 0; ident[j] && res_pos < MAX_LEN - 1; ++j)
+                    {
+                        result[res_pos++] = ident[j];
+                    }
+                    if (res_pos < MAX_LEN - 1) result[res_pos++] = ' ';
+                }
+
+                word[0] = '\0';
+                in_word = false;
             }
-            result += identifier + " ";
         }
     }
 
-    if (!result.empty())
+    if (in_word)
     {
-        result.back() = '.';
+        word[word_pos] = '\0';
+        bool number_word = true;
+        bool check_complete = false;
+
+        for (int j = 0; word[j] && !check_complete; ++j)
+        {
+            if (word[j] < '0' || word[j] > '9')
+            {
+                number_word = false;
+                check_complete = true;
+            }
+        }
+
+        if (!number_word)
+        {
+            int ident_pos = 0;
+            bool last_underscore = false;
+
+            if ((word[0] < 'A' || (word[0] > 'Z' && word[0] < 'a') || word[0] > 'z') && word[0] != '_')
+            {
+                if (ident_pos < MAX_LEN - 1) ident[ident_pos++] = '_';
+                last_underscore = true;
+            }
+
+            for (int j = 0; word[j]; ++j)
+            {
+                bool valid = (word[j] >= 'A' && word[j] <= 'Z') ||
+                    (word[j] >= 'a' && word[j] <= 'z') ||
+                    (word[j] >= '0' && word[j] <= '9') ||
+                    word[j] == '_';
+
+                if (valid)
+                {
+                    if (ident_pos < MAX_LEN - 1)
+                    {
+                        ident[ident_pos++] = word[j];
+                        last_underscore = (word[j] == '_');
+                    }
+                }
+                else if (!last_underscore)
+                {
+                    if (ident_pos < MAX_LEN - 1)
+                    {
+                        ident[ident_pos++] = '_';
+                        last_underscore = true;
+                    }
+                }
+            }
+            ident[ident_pos] = '\0';
+
+            for (int j = 0; ident[j] && res_pos < MAX_LEN - 1; ++j)
+            {
+                result[res_pos++] = ident[j];
+            }
+            if (res_pos < MAX_LEN - 1) result[res_pos++] = ' ';
+        }
+    }
+
+    if (res_pos > 0)
+    {
+        result[res_pos - 1] = '.';
     }
     else
     {
-        result = ".";
+        result[0] = '.';
+        result[1] = '\0';
     }
 
-    cout << "Ðåçóëüòàò: " << result << endl;
+    cout << "Ð ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚: " << result << endl;
 
     return 0;
 }
